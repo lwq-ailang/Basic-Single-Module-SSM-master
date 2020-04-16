@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zt.mapper.TIovUserCouponMapper">
+  <resultMap id="BaseResultMap" type="com.zt.model.TIovUserCoupon">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="ID" jdbcType="INTEGER" property="id" />
+    <result column="USER_ID" jdbcType="INTEGER" property="userId" />
+    <result column="COUPON_ID" jdbcType="INTEGER" property="couponId" />
+    <result column="STATUS" jdbcType="TINYINT" property="status" />
+    <result column="IS_ENABLE" jdbcType="TINYINT" property="isEnable" />
+    <result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+    <result column="LAST_UPDATED_DATE" jdbcType="TIMESTAMP" property="lastUpdatedDate" />
+    <result column="CREATOR" jdbcType="VARCHAR" property="creator" />
+    <result column="CREATED_DATE" jdbcType="TIMESTAMP" property="createdDate" />
+    <result column="VIN" jdbcType="VARCHAR" property="vin" />
+  </resultMap>
+</mapper>

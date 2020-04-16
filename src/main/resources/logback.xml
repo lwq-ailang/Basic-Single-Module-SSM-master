@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--参考文章：
+    http://blog.csdn.net/wangjunjun2008/article/details/18732019 介绍
+    http://blog.csdn.net/evankaka/article/details/50637994 结合springMVC
+-->
+<!--Logback默认配置的步骤
+ (1). 尝试在 classpath 下查找文件 logback-test.xml；
+ (2). 如果文件不存在，则查找文件 logback.xml；
+ (3). 如果两个文件都不存在，logback 用 BasicConfigurator 自动对自己进行配置，这会导致记录输出到控制台。
+ -->
+<!-- Logback 配置文件的语法非常灵活。正因为灵活，所以无法用 DTD 或 XML schema 进行定义。-->
+<!-- 以<configuration>包含零个或多个<appender> 和 零个或多个<logger>元素 和 最多一个<root>元素。-->
+<!--
+    scan:当此属性设置为true时，配置文件如果发生改变，将会被重新加载，默认值为true。
+    scanPeriod:设置监测配置文件是否有修改的时间间隔，如果没有给出时间单位，默认单位是毫秒。当scan为true时，此属性生效。默认的时间间隔为1分钟。
+    debug:当此属性设置为true时，将打印出logback内部日志信息，实时查看logback运行状态。默认值为false。
+        debug 属性只跟状态信息有关，并不会影响 logback 的配置文件，也不会影响 logger 的日志级别。
+        debug="true" 完全等同于配置一个 OnConsoleStatusListener 。
+    packagingData:启用展示包数据.在 1.1.4 版本中，展示包数据是默认被禁用的
+-->
+<configuration scan="true" scanPeriod="10 seconds" debug="false" packagingData="true">
+    <!--======================================================-->
+    <!-- 设置上下文名称：<contextName>
+         每个logger都关联到logger上下文，默认上下文名称为“default”。
+         但可以使用<contextName>设置成其他名字，用于区分不同应用程序的记录。一旦设置，不能修改。-->
+    <contextName>myAppName</contextName>
+    <!--======================================================-->
+    <!-- 用来定义变量值的标签，<property> 有两个属性，name和value；其中name的值是变量的名称，value的值时变量定义的值。
+         通过<property>定义的值会被插入到logger上下文中。定义变量后，可以使 ${} 来使用变量。-->
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <!--Windows 可以使用类似：value="D:/"-->
+    <!--Linux 可以使用类似：/opt/tomcat/logs-->
+    <property name="log.max.size" value="100MB"/> <!-- 日志文件大小 -->
+    <property name="log.root.level" value="${log.root.level}"/> <!-- 日志级别 -->
+    <property name="log.other.level" value="${log.other.level}"/> <!-- 其他日志级别 -->
+    <!-- 日志路径，这里是相对路径，web项目eclipse下会输出到eclipse的安装目录下，
+         如果部署到linux上的tomcat下，会输出到tomcat/bin目录 下 -->
+    <property name="log.base" value="${log.base}"/>
+    <property name="log.base" value="../mplogs/"/><!-- 指定到项目下的mplogs下 -->
+    <property name="log.moduleName" value="${log.moduleName}"/>  <!-- 模块名称， 影响日志配置名，日志文件名 -->
+    <!--======================================================-->
+    <!--Appender：负责写日志的组件 name指定appender名称，class指定appender的全限定名
+        <encoder>：对日志进行格式化。
+        <target>：字符串 System.out 或者 System.err ，默认 System.out ；
+    -->
+    <!--ConsoleAppender：控制台输出-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- layout 的作用是将日志格式化 -->
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <!--格式化输出,%d:日期; %thread:线程名; %-5level：级别,从左显示5个字符宽度; %msg:日志消息; %n:换行符-->
+            <Pattern>
+                [%d{yyyy-MM-dd HH:mm:ss.SSS}] -- [%p] -- [%thread >>>> %F:%L >>>> Method = %M] -- [Content = %m]%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <!-- FileAppender：日志文件输出
+            <prudent>：如果是 true，日志会被安全的写入文件，即使其他的FileAppender也在向此文件做写入操作，效率低，默认是 false。
+
+        RollingFileAppender：滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。有以下子节点：
+            <rollingPolicy>:当发生滚动时，决定 RollingFileAppender 的行为，涉及文件移动和重命名。
+            <triggeringPolicy >: 告知 RollingFileAppender 合适激活滚动。
+            <prudent>：当为true时，不支持FixedWindowRollingPolicy。支持TimeBasedRollingPolicy，但是有两个限制，1不支持也不允许文件压缩，2不能设置file属性，必须留空。
+    -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>testFile.log</file>
+        <append>true</append>
+        <!-- TimeBasedRollingPolicy： 最常用的滚动策略，它根据时间来制定滚动策略，既负责滚动也负责出发滚动。
+                滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。
+             FixedWindowRollingPolicy： 根据固定窗口算法重命名文件的滚动策略。
+        -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的路径+文件名 配置日志所生成的目录以及生成文件名的规则-->
+            <FileNamePattern>${log.base}/info/logbackOutFile.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数，超出数量就删除旧文件-->
+            <MaxHistory>30</MaxHistory>
+            <!-- 当天的日志大小 超过${log.max.size}时,压缩日志并保存 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max.size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+
+        <!-- encoder：对记录事件进行格式化。一是把日志信息转换成字节数组，二是把字节数组写入到输出流。-->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--
+                 目前PatternLayoutEncoder 是唯一有用的且默认的encoder ，有一个<pattern>节点，用来设置日志的输入格式。
+                 使用“%”加“转换符”方式，如果要输出“%”，则必须用“\”对“\%”进行转义
+            -->
+            <!--格式化输出,%d:日期;%thread:线程名;%-5level：级别,从左显示5个字符宽度;%msg:日志消息;%n:换行符-->
+            <pattern>
+                [ %-5level] [%date{yyyy-MM-dd HH:mm:ss.SSS}]%logger{96} [%line][%X{logid}]
+                - %msg%n
+            </pattern>
+            <charset>UTF-8</charset> <!-- 此处设置字符集 -->
+        </encoder>
+
+        <!--SizeBasedTriggeringPolicy： 查看当前活动文件的大小，如果超过指定大小会告知 日志文件最大的大小-->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>${log.max.size}</MaxFileSize>
+        </triggeringPolicy>
+
+        <!-- 过滤器，执行一个过滤器会有返回个枚举值，即DENY，NEUTRAL，ACCEPT其中之一。
+                返回DENY，日志将立即被抛弃不再经过其他过滤器；
+                返回NEUTRAL，有序列表里的下个过滤器过接着处理日志；
+                返回ACCEPT，日志会被立即处理，不再经过剩余过滤器。
+            LevelFilter： 级别过滤器，根据日志级别进行过滤。如果日志级别等于配置级别，过滤器会根据onMath 和 onMismatch接收或拒绝日志。有以下子节点：
+                <level>:设置过滤级别
+                <onMatch>:用于配置符合过滤条件的操作
+                <onMismatch>:用于配置不符合过滤条件的操作
+            -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+
+        <!-- 还可以自定义过滤器：class写一个过滤器类-->
+        <!--        <filter class="com.common.filler.LinkinFilter">-->
+        <!--            <level>INFO</level>-->
+        <!--            <onMatch>ACCEPT</onMatch>-->
+        <!--            <onMismatch>DENY</onMismatch>-->
+        <!--        </filter>-->
+
+    </appender>
+
+    <!--======================================================-->
+
+    <!--级别：ALL > TRACE > DEBUG > INFO > WARN > ERROR 定义于 ch.qos.logback.classic.Level类-->
+    <!--对特定目录或是类进行指定级别输出，而不使用root的级别-->
+    <!--将控制logback包下的所有类的日志的打印，
+        name：包名或者类的全路径
+        level：设置打印级别，若没有设置则继承他的上级<root>的日志级别
+        addtivity：默认为true，将此loger的打印信息向上级传递
+    -->
+    <!-- logback为java中的包 -->
+    <logger name="logback"/>
+    <!--logback.LogbackDemo：类的全路径 -->
+    <logger name="logback.LogbackDemo" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/> <!--指定了名字为“STDOUT”的appender。-->
+    </logger>
+
+    <!--myibatis log configure-->
+    <logger name="com.apache.ibatis" level="TRACE"/>
+    <logger name="java.sql.Connection" level="DEBUG"/>
+    <logger name="java.sql.Statement" level="DEBUG"/>
+    <logger name="java.sql.PreparedStatement" level="DEBUG"/>
+
+    <!-- show parameters for hibernate sql 专为 Hibernate 定制 -->
+    <!--
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder"  level="TRACE" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicExtractor"  level="DEBUG" />
+    <logger name="org.hibernate.SQL" level="DEBUG" />
+    <logger name="org.hibernate.engine.QueryParameters" level="DEBUG" />
+    <logger name="org.hibernate.engine.query.HQLQueryPlan" level="DEBUG" />
+    -->
+
+    <!--======================================================-->
+
+    <!--默认所有级别是 debug（ALL > TRACE > DEBUG > INFO > WARN > ERROR ），引用上面配置好的打印日志-->
+    <root level="info">
+        <appender-ref ref="STDOUT"/> <!-- root将级别为“INFO”及大于“INFO”的日志信息交给已经配置好的名为“STDOUT”的appender处理 -->
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!--日志异步到数据库 -->
+    <!--    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+            &lt;!&ndash;日志异步到数据库 &ndash;&gt;
+            <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+                &lt;!&ndash;连接池 &ndash;&gt;
+                <dataSource class="com.mchange.v2.c3p0.ComboPooledDataSource">
+                    <driverClass>com.mysql.jdbc.Driver</driverClass>
+                    <url>jdbc:mysql://127.0.0.1:3306/databaseName</url>
+                    <user>root</user>
+                    <password>root</password>
+                </dataSource>
+            </connectionSource>
+        </appender> -->
+
+</configuration>

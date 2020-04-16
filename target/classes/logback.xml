@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Logback 配置文件的语法非常灵活。正因为灵活，所以无法用 DTD 或 XML schema 进行定义。-->
+<!-- 以<configuration>开头，后面有零个或多个<appender>元素，有零个或多个<logger>元素，有最多一个<root>元素。-->
+<configuration>
+
+    <!--参考文章：-->
+    <!--http://blog.csdn.net/wangjunjun2008/article/details/18732019 介绍-->
+    <!--http://blog.csdn.net/evankaka/article/details/50637994 结合springMVC  -->
+    <!--======================================================-->
+
+    <!--Logback默认配置的步骤
+     (1). 尝试在 classpath 下查找文件 logback-test.xml；
+     (2). 如果文件不存在，则查找文件 logback.xml；
+     (3). 如果两个文件都不存在，logback 用 BasicConfigurator 自动对自己进行配置，这会导致记录输出到控制台。
+     -->
+    <!--======================================================-->
+
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <!--Windows 可以使用类似：D:/log-->
+    <!--Linux 可以使用类似：/opt/tomcat/logs-->
+    <property name="LOG_HOME" value="D:/" />
+    <property name="log.max.size" value="100MB" /> <!-- 日志文件大小 -->
+
+    <property name="log.root.level" value="${log.root.level}" /> <!-- 日志级别 -->
+    <property name="log.other.level" value="${log.other.level}" /> <!-- 其他日志级别 -->
+    <property name="log.base" value="${log.base}" /> <!-- 日志路径，这里是相对路径，web项目eclipse下会输出到eclipse的安装目录下，如果部署到linux上的tomcat下，会输出到tomcat/bin目录 下 -->
+    <property name="log.moduleName" value="${log.moduleName}" />  <!-- 模块名称， 影响日志配置名，日志文件名 -->
+
+    <!--======================================================-->
+
+   <!--Appender主要用于指定日志输出的目的地，目的地可以是控制台、文件、远程套接字服务器、 MySQL、
+        PostreSQL、 Oracle和其他数据库、JMS和远程UNIX Syslog守护进程等。 -->
+    <!--控制台输出-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <!--格式化输出,%d:日期; %thread:线程名; %-5level：级别,从左显示5个字符宽度; %msg:日志消息; %n:换行符-->
+            <Pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] -- [%p] -- [%thread >>>> %F:%L >>>> Method = %M] -- [Content = %m]%n</Pattern>
+        </layout>
+    </appender>
+
+    <!-- 日志文件输出 -->
+    <appender name="FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的路径+文件名-->
+            <FileNamePattern>${LOG_HOME}/logbackOutFile.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>30</MaxHistory>
+            <!-- 当天的日志大小 超过${log.max.size}时,压缩日志并保存 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${log.max.size}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出,%d:日期;%thread:线程名;%-5level：级别,从左显示5个字符宽度;%msg:日志消息;%n:换行符-->
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] -- [%p] -- [%thread >>>> %F:%L >>>> Method = %M] -- [Content = %m]%n</pattern>
+        </encoder>
+        <!--日志文件最大的大小-->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>${log.max.size}</MaxFileSize>
+        </triggeringPolicy>
+    </appender>
+    
+    <!--======================================================-->
+
+    <!--级别：ALL > TRACE > DEBUG > INFO > WARN > ERROR 定义于 ch.qos.logback.classic.Level类-->
+    <!--如果logger没有被分配级别，那么它将从有被分配级别的最近的祖先那里继承级别。root logger 默认级别是 DEBUG-->
+    <!--对特定目录或是类进行指定级别输出，而不使用root的级别-->
+    <logger name="com.youmeek" level="TRACE"/>
+
+    <!--myibatis log configure-->
+    <logger name="com.apache.ibatis" level="TRACE"/>
+    <logger name="java.sql.Connection" level="DEBUG"/>
+    <logger name="java.sql.Statement" level="DEBUG"/>
+    <logger name="java.sql.PreparedStatement" level="DEBUG"/>
+    
+
+    <!-- show parameters for hibernate sql 专为 Hibernate 定制 -->
+    <!--
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder"  level="TRACE" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicExtractor"  level="DEBUG" />
+    <logger name="org.hibernate.SQL" level="DEBUG" />
+    <logger name="org.hibernate.engine.QueryParameters" level="DEBUG" />
+    <logger name="org.hibernate.engine.query.HQLQueryPlan" level="DEBUG" />
+    -->
+
+    <!--======================================================-->
+
+    <!--默认所有级别是 debug，使用控制台和文件两种类型都进行输出输出，如果只要使用一种控制台输出的话，则下面把FILE那一行去掉即可-->
+    <root level="TRACE">
+        <appender-ref ref="STDOUT" /> <!-- 标识这个appender将会添加到这个logger -->
+        <appender-ref ref="FILE" />
+    </root>
+    <!--日志异步到数据库 -->
+<!--    <appender name="DB" class="ch.qos.logback.classic.db.DBAppender">
+        &lt;!&ndash;日志异步到数据库 &ndash;&gt;
+        <connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+            &lt;!&ndash;连接池 &ndash;&gt;
+            <dataSource class="com.mchange.v2.c3p0.ComboPooledDataSource">
+                <driverClass>com.mysql.jdbc.Driver</driverClass>
+                <url>jdbc:mysql://127.0.0.1:3306/databaseName</url>
+                <user>root</user>
+                <password>root</password>
+            </dataSource>
+        </connectionSource>
+    </appender> -->
+
+</configuration>
