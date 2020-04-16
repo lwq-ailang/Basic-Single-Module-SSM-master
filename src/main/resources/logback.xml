@@ -36,6 +36,11 @@
     <!-- 日志路径，这里是相对路径，web项目eclipse下会输出到eclipse的安装目录下，
          如果部署到linux上的tomcat下，会输出到tomcat/bin目录 下 -->
     <property name="log.base" value="${log.base}"/>
+    <!-- 日志路径，这里是相对路径，web项目eclipse下会输出到eclipse的安装目录下，
+         如果部署到linux上的tomcat下，会输出到tomcat/bin目录下
+         ./mplogs/ : 当前项目路径下
+         ../mplogs/ : 当前项目路径外（与项目路径同级）
+         -->
     <property name="log.base" value="../mplogs/"/><!-- 指定到项目下的mplogs下 -->
     <property name="log.moduleName" value="${log.moduleName}"/>  <!-- 模块名称， 影响日志配置名，日志文件名 -->
     <!--======================================================-->
@@ -63,7 +68,7 @@
             <prudent>：当为true时，不支持FixedWindowRollingPolicy。支持TimeBasedRollingPolicy，但是有两个限制，1不支持也不允许文件压缩，2不能设置file属性，必须留空。
     -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>testFile.log</file>
+       <!-- <file>testFile.log</file>  设置日志文件名 -->
         <append>true</append>
         <!-- TimeBasedRollingPolicy： 最常用的滚动策略，它根据时间来制定滚动策略，既负责滚动也负责出发滚动。
                 滚动记录文件，先将日志记录到指定文件，当符合某个条件时，将日志记录到其他文件。
@@ -71,7 +76,7 @@
         -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--日志文件输出的路径+文件名 配置日志所生成的目录以及生成文件名的规则-->
-            <FileNamePattern>${log.base}/info/logbackOutFile.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <FileNamePattern>${log.base}/info/logbackOutFile.log.%d{yyyy-MM-dd}.%i</FileNamePattern>
             <!--日志文件保留天数，超出数量就删除旧文件-->
             <MaxHistory>30</MaxHistory>
             <!-- 当天的日志大小 超过${log.max.size}时,压缩日志并保存 -->
